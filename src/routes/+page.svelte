@@ -126,4 +126,8 @@
 
 <SettingsModal bind:open={showModal} ondismiss={onModalDismiss} />
 <AddTorrentModal bind:open={showAddModal} onadded={() => torrentsStore.fetch()} />
-<TorrentDetailModal bind:open={showDetail} bind:torrent={selectedTorrent} />
+<TorrentDetailModal
+	bind:open={showDetail}
+	bind:torrent={selectedTorrent}
+	ondeleted={() => torrentsStore.fetch()}
+/>

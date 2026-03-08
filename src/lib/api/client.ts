@@ -47,6 +47,25 @@ export async function getTorrents(serverUrl: string): Promise<Torrent[]> {
 	return res.json();
 }
 
+export async function deleteTorrent(
+	serverUrl: string,
+	hash: string,
+	deleteFiles: boolean
+): Promise<void> {
+	const form = new FormData();
+	form.append('hashes', hash);
+	form.append('deleteFiles', deleteFiles ? 'true' : 'false');
+
+	const res = await fetch(`${apiBase(serverUrl)}/torrents/delete`, {
+		method: 'POST',
+		credentials: 'include',
+		body: form
+	});
+
+	if (res.status === 403) throw new Error('UNAUTHORIZED');
+	if (!res.ok) throw new Error(`Server error: ${res.status}`);
+}
+
 export async function addTorrent(
 	serverUrl: string,
 	data: { urls?: string; file?: File; savePath?: string; paused?: boolean; category?: string }
