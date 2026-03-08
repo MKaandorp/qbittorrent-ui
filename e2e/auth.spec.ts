@@ -107,6 +107,14 @@ test.describe('Authentication', () => {
 	});
 
 	test('session expiry re-prompts with modal', async ({ page }) => {
+		// Set auth before route mock so the first fetch returns 200
+		await page.goto('/');
+		await page.evaluate(() => {
+			localStorage.setItem('qbt_serverUrl', 'http://localhost:8080');
+			localStorage.setItem('qbt_username', 'admin');
+			localStorage.setItem('qbt_sid', 'stored-sid');
+		});
+
 		let callCount = 0;
 		await page.route('/api/torrents', async (route) => {
 			callCount++;
@@ -125,7 +133,7 @@ test.describe('Authentication', () => {
 			}
 		});
 
-		await setStoredAuth(page);
+		await page.reload();
 		await expect(page.getByPlaceholder('Filter torrents…')).toBeVisible();
 
 		// Wait for polling to trigger 401 and re-show modal

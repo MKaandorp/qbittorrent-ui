@@ -4,10 +4,14 @@
 	import ProgressBar from './ProgressBar.svelte';
 	import StatusBadge from './StatusBadge.svelte';
 
-	let { torrent }: { torrent: Torrent } = $props();
+	let { torrent, onclick }: { torrent: Torrent; onclick?: () => void } = $props();
 </script>
 
-<div class="card border border-base-200 bg-base-100 shadow-sm">
+<button
+	type="button"
+	class="card w-full cursor-pointer border border-base-200 bg-base-100 text-left shadow-sm transition-shadow hover:shadow-md"
+	{onclick}
+>
 	<div class="card-body gap-2 p-4">
 		<h3 class="card-title truncate text-sm" title={torrent.name}>{torrent.name}</h3>
 		<div class="flex items-center gap-2">
@@ -23,4 +27,4 @@
 			<span>ratio {formatRatio(torrent.ratio)}</span>
 		</div>
 	</div>
-</div>
+</button>

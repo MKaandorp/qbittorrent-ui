@@ -4,10 +4,10 @@
 	import ProgressBar from './ProgressBar.svelte';
 	import StatusBadge from './StatusBadge.svelte';
 
-	let { torrent }: { torrent: Torrent } = $props();
+	let { torrent, onclick }: { torrent: Torrent; onclick?: () => void } = $props();
 </script>
 
-<tr>
+<tr class="hover cursor-pointer" {onclick}>
 	<td class="max-w-xs truncate font-medium" title={torrent.name}>{torrent.name}</td>
 	<td>{formatBytes(torrent.size)}</td>
 	<td class="w-28">

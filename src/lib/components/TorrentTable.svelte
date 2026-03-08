@@ -3,7 +3,8 @@
 	import { torrentsStore } from '$lib/stores/torrents.svelte';
 	import TorrentRow from './TorrentRow.svelte';
 
-	let { torrents }: { torrents: Torrent[] } = $props();
+	let { torrents, onselect }: { torrents: Torrent[]; onselect?: (torrent: Torrent) => void } =
+		$props();
 
 	type Col = { key: Parameters<typeof torrentsStore.setSort>[0]; label: string };
 	const columns: Col[] = [
@@ -79,7 +80,7 @@
 		</thead>
 		<tbody>
 			{#each torrents as torrent (torrent.hash)}
-				<TorrentRow {torrent} />
+				<TorrentRow {torrent} onclick={() => onselect?.(torrent)} />
 			{:else}
 				<tr>
 					<td colspan="8" class="text-center text-base-content/50 py-8">No torrents found</td>

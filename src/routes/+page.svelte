@@ -1,11 +1,20 @@
 <script lang="ts">
+	import type { Torrent } from '$lib/types';
 	import { settingsStore } from '$lib/stores/settings.svelte';
 	import { torrentsStore } from '$lib/stores/torrents.svelte';
 	import SettingsModal from '$lib/components/SettingsModal.svelte';
+	import TorrentDetailModal from '$lib/components/TorrentDetailModal.svelte';
 	import TorrentTable from '$lib/components/TorrentTable.svelte';
 	import TorrentCard from '$lib/components/TorrentCard.svelte';
 
 	let showModal = $state(!settingsStore.isAuthenticated);
+	let selectedTorrent = $state<Torrent | null>(null);
+	let showDetail = $state(false);
+
+	function selectTorrent(torrent: Torrent) {
+		selectedTorrent = torrent;
+		showDetail = true;
+	}
 
 	function openSettings() {
 		showModal = true;
@@ -93,13 +102,13 @@
 
 			<!-- Desktop table -->
 			<div class="hidden md:block">
-				<TorrentTable torrents={torrentsStore.sorted} />
+				<TorrentTable torrents={torrentsStore.sorted} onselect={selectTorrent} />
 			</div>
 
 			<!-- Mobile cards -->
 			<div class="block flex flex-col gap-3 md:hidden">
 				{#each torrentsStore.sorted as torrent (torrent.hash)}
-					<TorrentCard {torrent} />
+					<TorrentCard {torrent} onclick={() => selectTorrent(torrent)} />
 				{:else}
 					<p class="text-center text-base-content/50 py-8">No torrents found</p>
 				{/each}
@@ -109,3 +118,4 @@
 </div>
 
 <SettingsModal bind:open={showModal} ondismiss={onModalDismiss} />
+<TorrentDetailModal bind:open={showDetail} bind:torrent={selectedTorrent} />
