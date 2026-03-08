@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>qBittorrent API Test</title>
+<style>
+body { font-family: sans-serif; margin: 40px; }
+button { margin: 5px; }
+pre { background: #eee; padding: 10px; }
+</style>
+</head>
+
+<body>
+
+<h1>qBittorrent API Test</h1>
+
+<div>
+<input id="username" placeholder="username">
+<input id="password" type="password" placeholder="password">
+<button onclick="login()">Login</button>
+</div>
+
+<div>
+<button onclick="getTorrents()">Get Torrents</button>
+</div>
+
+<pre id="output"></pre>
+
+<script>
+
+const QB_URL = "http://192.168.1.46:8080"; // change this
+
+function log(msg) {
+  document.getElementById("output").textContent =
+    typeof msg === "string" ? msg : JSON.stringify(msg, null, 2);
+}
+
+async function login() {
+
+  const username = document.getElementById("username").value;
+  const password = document.getElementById("password").value;
+
+  const body = new URLSearchParams({
+    username,
+    password
+  });
+
+  const res = await fetch(`${QB_URL}/api/v2/auth/login`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body
+  });
+
+  const text = await res.text();
+
+  log({
+    status: res.status,
+    response: text
+  });
+}
+
+async function getTorrents() {
+
+  const res = await fetch(`${QB_URL}/api/v2/torrents/info`, {
+    credentials: "include"
+  });
+
+  const data = await res.json();
+
+  log(data);
+}
+
+</script>
+
+</body>
+</html>
