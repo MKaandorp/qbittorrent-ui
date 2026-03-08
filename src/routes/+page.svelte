@@ -2,7 +2,7 @@
 	import { browser } from '$app/environment';
 	import type { Torrent } from '$lib/types';
 	import { settingsStore } from '$lib/stores/settings.svelte';
-	import { torrentsStore } from '$lib/stores/torrents.svelte';
+	import { torrentsStore, type SortKey } from '$lib/stores/torrents.svelte';
 	import { logoutRequest } from '$lib/api/client';
 	import SettingsModal from '$lib/components/SettingsModal.svelte';
 	import AddTorrentModal from '$lib/components/AddTorrentModal.svelte';
@@ -58,15 +58,6 @@
 		settingsStore.clearSession();
 		torrentsStore.stopPolling();
 		showModal = true;
-	}
-
-	function onModalDismiss() {
-		if (settingsStore.isAuthenticated) {
-			torrentsStore.fetch();
-			torrentsStore.startPolling(5000, () => {
-				showModal = true;
-			});
-		}
 	}
 
 	$effect(() => {
@@ -147,10 +138,7 @@
 				<select
 					class="select flex-1 select-sm"
 					value={torrentsStore.sortKey}
-					onchange={(e) =>
-						torrentsStore.setSort(
-							(e.target as HTMLSelectElement).value as Parameters<typeof torrentsStore.setSort>[0]
-						)}
+					onchange={(e) => torrentsStore.setSort((e.target as HTMLSelectElement).value as SortKey)}
 				>
 					<option value="name">Name</option>
 					<option value="size">Size</option>
@@ -182,7 +170,7 @@
 	</main>
 </div>
 
-<SettingsModal bind:open={showModal} ondismiss={onModalDismiss} />
+<SettingsModal bind:open={showModal} />
 <AddTorrentModal
 	bind:open={showAddModal}
 	initialFile={pendingFile}

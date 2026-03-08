@@ -3,7 +3,7 @@ import { getTorrents } from '$lib/api/client';
 import { settingsStore } from './settings.svelte';
 import { browser } from '$app/environment';
 
-type SortKey = keyof Pick<
+export type SortKey = keyof Pick<
 	Torrent,
 	'name' | 'size' | 'progress' | 'dlspeed' | 'upspeed' | 'ratio' | 'eta' | 'added_on'
 >;
@@ -40,7 +40,7 @@ function createTorrentsStore() {
 		})
 	);
 
-	async function fetch(isBackground = false) {
+	async function loadTorrents(isBackground = false) {
 		const { serverUrl } = settingsStore;
 		if (!serverUrl) return;
 
@@ -72,7 +72,7 @@ function createTorrentsStore() {
 
 		const tick = async () => {
 			if (document.visibilityState === 'hidden') return;
-			await fetch(true);
+			await loadTorrents(true);
 		};
 
 		pollInterval = setInterval(tick, ms);
@@ -130,7 +130,7 @@ function createTorrentsStore() {
 		get filterText() {
 			return filterText;
 		},
-		fetch,
+		fetch: loadTorrents,
 		startPolling,
 		stopPolling,
 		setSort,
