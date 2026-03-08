@@ -8,7 +8,8 @@ export default defineConfig({
 	plugins: [
 		tailwindcss(),
 		sveltekit(),
-		VitePWA({
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		(VitePWA as any)({
 			registerType: 'autoUpdate',
 			manifest: {
 				name: 'qBittorrent UI',
@@ -24,6 +25,21 @@ export default defineConfig({
 						sizes: 'any',
 						type: 'image/svg+xml',
 						purpose: 'any maskable'
+					}
+				],
+				file_handlers: [
+					{
+						action: '/',
+						accept: {
+							'application/x-bittorrent': ['.torrent']
+						},
+						launch_type: 'single-client'
+					}
+				],
+				protocol_handlers: [
+					{
+						protocol: 'magnet',
+						url: '/?magnet=%s'
 					}
 				]
 			},

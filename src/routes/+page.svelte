@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
 	import type { Torrent } from '$lib/types';
 	import { settingsStore } from '$lib/stores/settings.svelte';
 	import { torrentsStore } from '$lib/stores/torrents.svelte';
@@ -13,6 +14,35 @@
 	let showAddModal = $state(false);
 	let selectedTorrent = $state<Torrent | null>(null);
 	let showDetail = $state(false);
+	let pendingFile = $state<File | null>(null);
+	let pendingMagnet = $state('');
+
+	$effect(() => {
+		if (!browser) return;
+
+		// Handle magnet link from URL (protocol_handlers)
+		const magnetParam = new URLSearchParams(window.location.search).get('magnet');
+		if (magnetParam) {
+			pendingMagnet = magnetParam;
+			showAddModal = true;
+			history.replaceState({}, '', '/');
+		}
+
+		// Handle .torrent file from OS file association (File Handling API)
+		if ('launchQueue' in window) {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			(window as any).launchQueue.setConsumer(async (launchParams: any) => {
+				if (launchParams.files.length > 0) {
+					const fileHandle = launchParams.files[0];
+					const file: File = await fileHandle.getFile();
+					if (file.name.endsWith('.torrent')) {
+						pendingFile = file;
+						showAddModal = true;
+					}
+				}
+			});
+		}
+	});
 
 	function selectTorrent(torrent: Torrent) {
 		selectedTorrent = torrent;
@@ -125,7 +155,16 @@
 </div>
 
 <SettingsModal bind:open={showModal} ondismiss={onModalDismiss} />
-<AddTorrentModal bind:open={showAddModal} onadded={() => torrentsStore.fetch()} />
+<AddTorrentModal
+	bind:open={showAddModal}
+	initialFile={pendingFile}
+	initialMagnet={pendingMagnet}
+	onadded={() => {
+		pendingFile = null;
+		pendingMagnet = '';
+		torrentsStore.fetch();
+	}}
+/>
 <TorrentDetailModal
 	bind:open={showDetail}
 	bind:torrent={selectedTorrent}

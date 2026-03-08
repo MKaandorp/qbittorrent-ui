@@ -5,9 +5,13 @@
 
 	let {
 		open = $bindable(false),
+		initialFile = null,
+		initialMagnet = '',
 		onadded
 	}: {
 		open?: boolean;
+		initialFile?: File | null;
+		initialMagnet?: string;
 		onadded?: () => void;
 	} = $props();
 
@@ -15,6 +19,20 @@
 	let activeTab = $state<Tab>('magnet');
 	let magnetUrl = $state('');
 	let torrentFile = $state<File | null>(null);
+
+	$effect(() => {
+		if (initialFile) {
+			torrentFile = initialFile;
+			activeTab = 'file';
+		}
+	});
+
+	$effect(() => {
+		if (initialMagnet) {
+			magnetUrl = initialMagnet;
+			activeTab = 'magnet';
+		}
+	});
 	let savePath = $state('');
 	let category = $state('');
 	let paused = $state(false);
@@ -130,14 +148,27 @@
 						<label class="label" for="torrentFile">
 							<span class="label-text">Torrent file (.torrent)</span>
 						</label>
-						<input
-							id="torrentFile"
-							type="file"
-							accept=".torrent"
-							class="file-input-bordered file-input w-full"
-							onchange={onFileChange}
-							disabled={loading}
-						/>
+						{#if torrentFile && initialFile && torrentFile === initialFile}
+							<div class="alert py-2 text-sm alert-success">
+								<span>📎 {torrentFile.name}</span>
+								<button
+									type="button"
+									class="btn btn-ghost btn-xs"
+									onclick={() => (torrentFile = null)}
+								>
+									Change
+								</button>
+							</div>
+						{:else}
+							<input
+								id="torrentFile"
+								type="file"
+								accept=".torrent"
+								class="file-input-bordered file-input w-full"
+								onchange={onFileChange}
+								disabled={loading}
+							/>
+						{/if}
 					</div>
 				{/if}
 
