@@ -10,7 +10,8 @@
 	const columns: Col[] = [
 		{ key: 'name', label: 'Name' },
 		{ key: 'size', label: 'Size' },
-		{ key: 'progress', label: 'Progress' }
+		{ key: 'progress', label: 'Progress' },
+		{ key: 'added_on', label: 'Added On' }
 	];
 </script>
 
@@ -83,7 +84,7 @@
 				<TorrentRow {torrent} onclick={() => onselect?.(torrent)} />
 			{:else}
 				<tr>
-					<td colspan="8" class="text-center text-base-content/50 py-8">No torrents found</td>
+					<td colspan="9" class="text-center text-base-content/50 py-8">No torrents found</td>
 				</tr>
 			{/each}
 		</tbody>

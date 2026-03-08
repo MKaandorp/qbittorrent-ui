@@ -14,6 +14,7 @@
 		<ProgressBar value={torrent.progress} />
 		<span class="text-xs text-base-content/60">{Math.round(torrent.progress * 100)}%</span>
 	</td>
+	<td class="text-sm">{new Date(torrent.added_on * 1000).toLocaleDateString()}</td>
 	<td><StatusBadge state={torrent.state} /></td>
 	<td class="text-primary">↓ {formatSpeed(torrent.dlspeed)}</td>
 	<td class="text-secondary">↑ {formatSpeed(torrent.upspeed)}</td>
