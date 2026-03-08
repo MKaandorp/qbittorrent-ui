@@ -1,22 +1,26 @@
-# sv
+# qbittorrent-ui
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+A simple alternative WebUI for QBittorrent, which requires no installation. Simply browse to https://mkaandorp.github.io/qbittorrent-ui/ and fill out the details of your instance.
 
-## Creating a project
+## Required settings
 
-If you're seeing this, you've probably already done this step. Congrats!
+To allow this to work, you have to disable CSRF protection and enable cross-origin requests. Please be aware of the security risks.
 
-```sh
-# create a new project
-npx sv create my-app
-```
+- Your browser will allow JavaScript from https://mkaandorp.github.io to send authenticated requests to your qBittorrent WebUI.
 
-To recreate this project with the same configuration:
+- If this site (or any script it loads) is compromised, it could control your qBittorrent instance (add/remove torrents, change settings, etc.).
 
-```sh
-# recreate this project
-pnpm dlx sv@0.12.5 create --template minimal --types ts --add prettier eslint vitest="usages:unit,component" playwright tailwindcss="plugins:typography,forms" mcp="ide:claude-code+setup:remote" --install pnpm qbittorrent-ui
-```
+- Only use this setup if your qBittorrent WebUI is restricted to your local network and you trust the UI the web application.
+
+Required settings (QBittorrent -> Options -> Web UI):
+
+- Uncheck "Enable Cross-Site Request Forgery (CSRF) protection"
+- Check " Add custom HTTP headers", and add the following two lines:
+
+  ```
+  Access-Control-Allow-Origin: https://mkaandorp.github.io
+  Access-Control-Allow-Credentials: true
+  ```
 
 ## Developing
 
@@ -38,5 +42,3 @@ npm run build
 ```
 
 You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
