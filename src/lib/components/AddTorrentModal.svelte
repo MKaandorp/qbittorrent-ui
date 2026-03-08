@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { settingsStore } from '$lib/stores/settings.svelte';
+	import { foldersStore } from '$lib/stores/folders.svelte';
 	import { addTorrent } from '$lib/api/client';
 
 	let {
@@ -55,15 +56,17 @@
 			return;
 		}
 
+		const path = savePath.trim();
 		loading = true;
 		try {
 			await addTorrent(serverUrl, {
 				urls: activeTab === 'magnet' ? magnetUrl.trim() : undefined,
 				file: activeTab === 'file' ? (torrentFile ?? undefined) : undefined,
-				savePath: savePath.trim() || undefined,
+				savePath: path || undefined,
 				category: category.trim() || undefined,
 				paused
 			});
+			if (path) foldersStore.add(path);
 			close();
 			onadded?.();
 		} catch (err) {
@@ -137,23 +140,59 @@
 					</div>
 				{/if}
 
+				<!-- Save path -->
+				<div class="form-control">
+					<label class="label" for="savePath">
+						<span class="label-text">Save to folder</span>
+						{#if savePath.trim()}
+							<button
+								type="button"
+								class="label-text-alt link link-hover"
+								onclick={() => (savePath = '')}
+							>
+								Clear
+							</button>
+						{/if}
+					</label>
+					<input
+						id="savePath"
+						type="text"
+						class="input-bordered input"
+						placeholder="Default location"
+						bind:value={savePath}
+						disabled={loading}
+					/>
+					{#if foldersStore.folders.length > 0}
+						<div class="mt-2 flex flex-wrap gap-1">
+							{#each foldersStore.folders as folder (folder)}
+								<div class="badge gap-1 badge-outline pr-1 text-xs">
+									<button
+										type="button"
+										class="max-w-45 truncate"
+										title={folder}
+										onclick={() => (savePath = folder)}
+									>
+										{folder}
+									</button>
+									<button
+										type="button"
+										class="opacity-50 hover:opacity-100"
+										aria-label="Remove {folder}"
+										onclick={() => foldersStore.remove(folder)}
+									>
+										✕
+									</button>
+								</div>
+							{/each}
+						</div>
+					{/if}
+				</div>
+
+				<!-- Other options -->
 				<div class="collapse-arrow collapse border border-base-300">
 					<input type="checkbox" />
-					<div class="collapse-title text-sm font-medium">Options</div>
+					<div class="collapse-title text-sm font-medium">More options</div>
 					<div class="collapse-content flex flex-col gap-3">
-						<div class="form-control">
-							<label class="label" for="savePath">
-								<span class="label-text">Save path</span>
-							</label>
-							<input
-								id="savePath"
-								type="text"
-								class="input-bordered input input-sm"
-								placeholder="Leave blank for default"
-								bind:value={savePath}
-								disabled={loading}
-							/>
-						</div>
 						<div class="form-control">
 							<label class="label" for="category">
 								<span class="label-text">Category</span>
