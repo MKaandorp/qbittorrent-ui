@@ -4,8 +4,6 @@ import { playwright } from '@vitest/browser-playwright';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
-const base = process.env.BASE_PATH ?? '';
-
 export default defineConfig({
 	plugins: [
 		tailwindcss(),
@@ -20,7 +18,7 @@ export default defineConfig({
 				theme_color: '#1d4ed8',
 				background_color: '#1d4ed8',
 				display: 'standalone',
-				start_url: base + '/',
+				start_url: (process.env.BASE_PATH ?? '') + '/',
 				icons: [
 					{
 						src: 'icon.svg',
@@ -31,7 +29,7 @@ export default defineConfig({
 				],
 				file_handlers: [
 					{
-						action: base + '/',
+						action: (process.env.BASE_PATH ?? '') + '/',
 						accept: {
 							'application/x-bittorrent': ['.torrent']
 						},
@@ -41,7 +39,7 @@ export default defineConfig({
 				protocol_handlers: [
 					{
 						protocol: 'magnet',
-						url: base + '/?magnet=%s'
+						url: (process.env.BASE_PATH ?? '') + '/?magnet=%s'
 					}
 				]
 			},
@@ -50,7 +48,7 @@ export default defineConfig({
 				navigateFallback: null,
 				runtimeCaching: [
 					{
-						urlPattern: new RegExp(`^${base}/api/`),
+						urlPattern: /^\/api\//,
 						handler: 'NetworkOnly'
 					}
 				]
