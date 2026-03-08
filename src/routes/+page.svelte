@@ -164,6 +164,10 @@
 		pendingMagnet = '';
 		torrentsStore.fetch();
 	}}
+	onclosed={() => {
+		pendingFile = null;
+		pendingMagnet = '';
+	}}
 />
 <TorrentDetailModal
 	bind:open={showDetail}

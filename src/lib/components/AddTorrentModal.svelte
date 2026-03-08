@@ -7,32 +7,29 @@
 		open = $bindable(false),
 		initialFile = null,
 		initialMagnet = '',
-		onadded
+		onadded,
+		onclosed
 	}: {
 		open?: boolean;
 		initialFile?: File | null;
 		initialMagnet?: string;
 		onadded?: () => void;
+		onclosed?: () => void;
 	} = $props();
 
 	type Tab = 'magnet' | 'file';
-	let activeTab = $state<Tab>('magnet');
-	let magnetUrl = $state('');
-	let torrentFile = $state<File | null>(null);
 
-	$effect(() => {
-		if (initialFile) {
-			torrentFile = initialFile;
-			activeTab = 'file';
-		}
-	});
+	// Local user overrides (null = use prop value)
+	let localTab = $state<Tab | null>(null);
+	let localMagnetUrl = $state('');
+	let localFile = $state<File | null | false>(null); // false = explicitly cleared by user
 
-	$effect(() => {
-		if (initialMagnet) {
-			magnetUrl = initialMagnet;
-			activeTab = 'magnet';
-		}
-	});
+	let activeTab = $derived<Tab>(localTab ?? (initialFile ? 'file' : 'magnet'));
+	let torrentFile = $derived<File | null>(
+		localFile === false ? null : (localFile ?? initialFile ?? null)
+	);
+	let magnetUrl = $derived(localMagnetUrl || initialMagnet);
+
 	let savePath = $state('');
 	let category = $state('');
 	let paused = $state(false);
@@ -40,23 +37,24 @@
 	let error = $state<string | null>(null);
 
 	function reset() {
-		magnetUrl = '';
-		torrentFile = null;
+		localTab = null;
+		localMagnetUrl = '';
+		localFile = null;
 		savePath = '';
 		category = '';
 		paused = false;
 		error = null;
-		activeTab = 'magnet';
 	}
 
 	function close() {
 		open = false;
 		reset();
+		onclosed?.();
 	}
 
 	function onFileChange(e: Event) {
 		const input = e.target as HTMLInputElement;
-		torrentFile = input.files?.[0] ?? null;
+		localFile = input.files?.[0] ?? false;
 	}
 
 	async function handleSubmit(e: SubmitEvent) {
@@ -116,14 +114,14 @@
 				<button
 					role="tab"
 					class="tab {activeTab === 'magnet' ? 'tab-active' : ''}"
-					onclick={() => (activeTab = 'magnet')}
+					onclick={() => (localTab = 'magnet')}
 				>
 					Magnet / URL
 				</button>
 				<button
 					role="tab"
 					class="tab {activeTab === 'file' ? 'tab-active' : ''}"
-					onclick={() => (activeTab = 'file')}
+					onclick={() => (localTab = 'file')}
 				>
 					Torrent File
 				</button>
@@ -139,7 +137,8 @@
 							id="magnetUrl"
 							class="textarea-bordered textarea h-24 font-mono text-sm"
 							placeholder="magnet:?xt=urn:btih:..."
-							bind:value={magnetUrl}
+							value={magnetUrl}
+							oninput={(e) => (localMagnetUrl = (e.target as HTMLTextAreaElement).value)}
 							disabled={loading}
 						></textarea>
 					</div>
@@ -148,13 +147,13 @@
 						<label class="label" for="torrentFile">
 							<span class="label-text">Torrent file (.torrent)</span>
 						</label>
-						{#if torrentFile && initialFile && torrentFile === initialFile}
+						{#if torrentFile && localFile === null}
 							<div class="alert py-2 text-sm alert-success">
 								<span>📎 {torrentFile.name}</span>
 								<button
 									type="button"
 									class="btn btn-ghost btn-xs"
-									onclick={() => (torrentFile = null)}
+									onclick={() => (localFile = false)}
 								>
 									Change
 								</button>
