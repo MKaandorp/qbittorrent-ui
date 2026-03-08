@@ -145,7 +145,7 @@
 			<!-- Mobile sort controls -->
 			<div class="mb-3 flex items-center gap-2 md:hidden">
 				<select
-					class="select-bordered select flex-1 select-sm"
+					class="select select-sm flex-1"
 					value={torrentsStore.sortKey}
 					onchange={(e) =>
 						torrentsStore.setSort(
