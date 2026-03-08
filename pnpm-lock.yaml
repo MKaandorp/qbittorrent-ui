@@ -7,6 +7,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      daisyui:
+        specifier: ^5.5.19
+        version: 5.5.19
     devDependencies:
       '@eslint/compat':
         specifier: ^2.0.2
@@ -33,7 +37,7 @@ importers:
         specifier: ^0.5.19
         version: 0.5.19(tailwindcss@4.2.1)
       '@tailwindcss/vite':
-        specifier: ^4.1.18
+        specifier: ^4.2.1
         version: 4.2.1(vite@7.3.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.31.1))
       '@types/node':
         specifier: ^22
@@ -72,7 +76,7 @@ importers:
         specifier: ^4.4.2
         version: 4.4.5(picomatch@4.0.3)(svelte@5.53.7)(typescript@5.9.3)
       tailwindcss:
-        specifier: ^4.1.18
+        specifier: ^4.2.1
         version: 4.2.1
       typescript:
         specifier: ^5.9.3
@@ -822,6 +826,9 @@ packages:
     resolution: {integrity: sha512-/Tb/JcjK111nNScGob5MNtsntNM1aCNUDipB/TkwZFhyDrrE47SOx/18wF2bbjgc3ZzCSKW1T5nt5EbFoAz/Vg==}
     engines: {node: '>=4'}
     hasBin: true
+
+  daisyui@5.5.19:
+    resolution: {integrity: sha512-pbFAkl1VCEh/MPCeclKL61I/MqRIFFhNU7yiXoDDRapXN4/qNCoMxeCCswyxEEhqL5eiTTfwHvucFtOE71C9sA==}
 
   debug@4.4.3:
     resolution: {integrity: sha512-RGwwWnwQvkVfavKVt22FGLw+xYSdzARwm0ru6DhTVA3umU5hZc28V3kO4stgYryrTlLpuvgI9GiijltAjNbcqA==}
@@ -2232,6 +2239,8 @@ snapshots:
       which: 2.0.2
 
   cssesc@3.0.0: {}
+
+  daisyui@5.5.19: {}
 
   debug@4.4.3:
     dependencies:

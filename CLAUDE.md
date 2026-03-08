@@ -4,6 +4,16 @@
 - **Package Manager**: pnpm
 - **Add-ons**: prettier, eslint, vitest, playwright, tailwindcss, mcp
 
+### Stack
+
+- SvelteKit
+- daisyUI
+
+### Workflow
+
+- Write playwright e2e tests for all added functionality
+- After you finish a task, make sure you run `pnpm run format`, `pnpm run lint`, `pnpm run check`, and `pnpm run test`, and fix possible errors
+
 ---
 
 You are able to use the Svelte MCP server, where you have access to comprehensive Svelte 5 and SvelteKit documentation. Here's how to use the available tools effectively:
@@ -29,3 +39,9 @@ You MUST use this tool whenever writing Svelte code before sending it to the use
 
 Generates a Svelte Playground link with the provided code.
 After completing the code, ask the user if they want a playground link. Only call this tool after user confirmation and NEVER if code was written to files in their project.
+
+##
+
+## External docs
+
+- QBittorent WebUI API: https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-5.0)
