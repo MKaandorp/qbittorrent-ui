@@ -29,3 +29,8 @@ export function formatEta(seconds: number): string {
 export function formatRatio(ratio: number): string {
 	return ratio.toFixed(2);
 }
+
+export function formatDate(ts: number): string {
+	if (ts <= 0) return '—';
+	return new Date(ts * 1000).toLocaleString();
+}

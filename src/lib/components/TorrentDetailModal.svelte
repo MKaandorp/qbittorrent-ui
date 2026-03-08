@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Torrent } from '$lib/types';
-	import { formatBytes, formatSpeed, formatEta, formatRatio } from '$lib/utils/format';
+	import { formatBytes, formatSpeed, formatEta, formatRatio, formatDate } from '$lib/utils/format';
 	import { settingsStore } from '$lib/stores/settings.svelte';
 	import { deleteTorrent } from '$lib/api/client';
 	import ProgressBar from './ProgressBar.svelte';
@@ -42,11 +42,6 @@
 		} finally {
 			deleting = false;
 		}
-	}
-
-	function formatDate(ts: number): string {
-		if (ts <= 0) return '—';
-		return new Date(ts * 1000).toLocaleString();
 	}
 </script>
 

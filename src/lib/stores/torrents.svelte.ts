@@ -2,7 +2,6 @@ import type { Torrent } from '$lib/types';
 import { getTorrents } from '$lib/api/client';
 import { settingsStore } from './settings.svelte';
 import { browser } from '$app/environment';
-
 export type SortKey = keyof Pick<
 	Torrent,
 	'name' | 'size' | 'progress' | 'dlspeed' | 'upspeed' | 'ratio' | 'eta' | 'added_on'

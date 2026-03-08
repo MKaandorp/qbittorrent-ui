@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Torrent } from '$lib/types';
-	import { formatBytes, formatSpeed, formatEta, formatRatio } from '$lib/utils/format';
+	import { formatBytes, formatSpeed, formatEta, formatRatio, formatDate } from '$lib/utils/format';
 	import ProgressBar from './ProgressBar.svelte';
 	import StatusBadge from './StatusBadge.svelte';
 
@@ -14,7 +14,7 @@
 		<ProgressBar value={torrent.progress} />
 		<span class="text-xs text-base-content/60">{Math.round(torrent.progress * 100)}%</span>
 	</td>
-	<td class="text-sm">{new Date(torrent.added_on * 1000).toLocaleDateString()}</td>
+	<td class="text-sm">{formatDate(torrent.added_on)}</td>
 	<td><StatusBadge state={torrent.state} /></td>
 	<td class="text-primary">↓ {formatSpeed(torrent.dlspeed)}</td>
 	<td class="text-secondary">↑ {formatSpeed(torrent.upspeed)}</td>
