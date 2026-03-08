@@ -2,9 +2,43 @@ import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vitest/config';
 import { playwright } from '@vitest/browser-playwright';
 import { sveltekit } from '@sveltejs/kit/vite';
+import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
-	plugins: [tailwindcss(), sveltekit()],
+	plugins: [
+		tailwindcss(),
+		sveltekit(),
+		VitePWA({
+			registerType: 'autoUpdate',
+			manifest: {
+				name: 'qBittorrent UI',
+				short_name: 'qBit UI',
+				description: 'A modern web UI for qBittorrent',
+				theme_color: '#1d4ed8',
+				background_color: '#1d4ed8',
+				display: 'standalone',
+				start_url: '/',
+				icons: [
+					{
+						src: 'icon.svg',
+						sizes: 'any',
+						type: 'image/svg+xml',
+						purpose: 'any maskable'
+					}
+				]
+			},
+			workbox: {
+				globPatterns: ['**/*.{js,css,html,svg,ico,woff,woff2}'],
+				navigateFallback: null,
+				runtimeCaching: [
+					{
+						urlPattern: /^\/api\//,
+						handler: 'NetworkOnly'
+					}
+				]
+			}
+		})
+	],
 	test: {
 		expect: { requireAssertions: true },
 		projects: [
