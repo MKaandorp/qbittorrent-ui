@@ -65,11 +65,7 @@
 				<span class="hidden text-sm text-base-content/60 sm:inline">
 					{settingsStore.username}@{settingsStore.serverUrl.replace(/https?:\/\//, '')}
 				</span>
-				<button
-					class="btn btn-sm btn-primary"
-					onclick={() => (showAddModal = true)}
-					aria-label="Add torrent"
-				>
+				<button class="btn btn-sm btn-primary" onclick={() => (showAddModal = true)}>
 					+ Add
 				</button>
 				<button class="btn btn-ghost btn-sm" onclick={openSettings} aria-label="Settings">

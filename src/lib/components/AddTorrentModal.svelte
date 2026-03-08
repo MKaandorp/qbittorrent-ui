@@ -84,6 +84,7 @@
 		<div
 			class="modal-box w-11/12 max-w-lg"
 			role="dialog"
+			aria-labelledby="add-torrent-title"
 			tabindex="-1"
 			onclick={(e) => e.stopPropagation()}
 		>
@@ -91,7 +92,7 @@
 				✕
 			</button>
 
-			<h3 class="mb-4 text-lg font-bold">Add Torrent</h3>
+			<h3 id="add-torrent-title" class="mb-4 text-lg font-bold">Add Torrent</h3>
 
 			<div role="tablist" class="tabs-bordered mb-4 tabs">
 				<button
