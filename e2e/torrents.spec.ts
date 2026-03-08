@@ -127,6 +127,27 @@ test.describe('Torrent list', () => {
 		expect(firstAsc).toContain('Debian');
 	});
 
+	test('mobile sort controls are visible and functional', async ({ page }) => {
+		await page.setViewportSize({ width: 375, height: 812 });
+		await setupWithTorrents(page);
+
+		const sortSelect = page.getByRole('combobox');
+		await expect(sortSelect).toBeVisible();
+
+		// Default sort is by name asc: Debian comes before Ubuntu
+		const cards = page.locator('h3');
+		await expect(cards.first()).toContainText('Debian');
+
+		// Change sort to size
+		await sortSelect.selectOption('size');
+		// Ubuntu (1 GB) is smaller than Debian (3.5 GB), so Ubuntu comes first asc
+		await expect(cards.first()).toContainText('Ubuntu');
+
+		// Toggle direction with the arrow button
+		await page.getByRole('button', { name: 'Toggle sort direction' }).click();
+		await expect(cards.first()).toContainText('Debian');
+	});
+
 	test('polling updates torrent list', async ({ page }) => {
 		await page.setViewportSize({ width: 1280, height: 800 });
 		await page.goto('/');

@@ -142,6 +142,34 @@
 				<TorrentTable torrents={torrentsStore.sorted} onselect={selectTorrent} />
 			</div>
 
+			<!-- Mobile sort controls -->
+			<div class="mb-3 flex items-center gap-2 md:hidden">
+				<select
+					class="select-bordered select flex-1 select-sm"
+					value={torrentsStore.sortKey}
+					onchange={(e) =>
+						torrentsStore.setSort(
+							(e.target as HTMLSelectElement).value as Parameters<typeof torrentsStore.setSort>[0]
+						)}
+				>
+					<option value="name">Name</option>
+					<option value="size">Size</option>
+					<option value="progress">Progress</option>
+					<option value="dlspeed">Download Speed</option>
+					<option value="upspeed">Upload Speed</option>
+					<option value="ratio">Ratio</option>
+					<option value="eta">ETA</option>
+					<option value="added_on">Added On</option>
+				</select>
+				<button
+					class="btn btn-ghost btn-sm"
+					onclick={() => torrentsStore.setSort(torrentsStore.sortKey)}
+					aria-label="Toggle sort direction"
+				>
+					{torrentsStore.sortAsc ? '↑' : '↓'}
+				</button>
+			</div>
+
 			<!-- Mobile cards -->
 			<div class="flex flex-col gap-3 md:hidden">
 				{#each torrentsStore.sorted as torrent (torrent.hash)}
