@@ -2,12 +2,15 @@
 	import type { Torrent } from '$lib/types';
 	import { settingsStore } from '$lib/stores/settings.svelte';
 	import { torrentsStore } from '$lib/stores/torrents.svelte';
+	import { logoutRequest } from '$lib/api/client';
 	import SettingsModal from '$lib/components/SettingsModal.svelte';
+	import AddTorrentModal from '$lib/components/AddTorrentModal.svelte';
 	import TorrentDetailModal from '$lib/components/TorrentDetailModal.svelte';
 	import TorrentTable from '$lib/components/TorrentTable.svelte';
 	import TorrentCard from '$lib/components/TorrentCard.svelte';
 
 	let showModal = $state(!settingsStore.isAuthenticated);
+	let showAddModal = $state(false);
 	let selectedTorrent = $state<Torrent | null>(null);
 	let showDetail = $state(false);
 
@@ -20,7 +23,8 @@
 		showModal = true;
 	}
 
-	function logout() {
+	async function logout() {
+		await logoutRequest(settingsStore.serverUrl);
 		settingsStore.clearSession();
 		torrentsStore.stopPolling();
 		showModal = true;
@@ -61,6 +65,13 @@
 				<span class="hidden text-sm text-base-content/60 sm:inline">
 					{settingsStore.username}@{settingsStore.serverUrl.replace(/https?:\/\//, '')}
 				</span>
+				<button
+					class="btn btn-sm btn-primary"
+					onclick={() => (showAddModal = true)}
+					aria-label="Add torrent"
+				>
+					+ Add
+				</button>
 				<button class="btn btn-ghost btn-sm" onclick={openSettings} aria-label="Settings">
 					⚙️
 				</button>
@@ -106,7 +117,7 @@
 			</div>
 
 			<!-- Mobile cards -->
-			<div class="block flex flex-col gap-3 md:hidden">
+			<div class="flex flex-col gap-3 md:hidden">
 				{#each torrentsStore.sorted as torrent (torrent.hash)}
 					<TorrentCard {torrent} onclick={() => selectTorrent(torrent)} />
 				{:else}
@@ -118,4 +129,5 @@
 </div>
 
 <SettingsModal bind:open={showModal} ondismiss={onModalDismiss} />
+<AddTorrentModal bind:open={showAddModal} onadded={() => torrentsStore.fetch()} />
 <TorrentDetailModal bind:open={showDetail} bind:torrent={selectedTorrent} />

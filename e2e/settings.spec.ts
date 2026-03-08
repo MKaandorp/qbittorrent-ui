@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test';
 
+const QBT = 'http://localhost:8080';
+
 test.describe('Settings modal', () => {
 	test.beforeEach(async ({ page }) => {
 		await page.goto('/');
@@ -27,14 +29,10 @@ test.describe('Settings modal', () => {
 	});
 
 	test('persists serverUrl and username to localStorage on successful login', async ({ page }) => {
-		await page.route('/api/auth/login', async (route) => {
-			await route.fulfill({
-				status: 200,
-				contentType: 'application/json',
-				body: JSON.stringify({ success: true, sid: 'test-sid-123' })
-			});
+		await page.route(`${QBT}/api/v2/auth/login`, async (route) => {
+			await route.fulfill({ status: 200, body: 'Ok.' });
 		});
-		await page.route('/api/torrents', async (route) => {
+		await page.route(`${QBT}/api/v2/torrents/info`, async (route) => {
 			await route.fulfill({
 				status: 200,
 				contentType: 'application/json',
@@ -43,7 +41,7 @@ test.describe('Settings modal', () => {
 		});
 
 		const modal = page.getByRole('dialog');
-		await modal.getByLabel('Server URL').fill('http://localhost:8080');
+		await modal.getByLabel('Server URL').fill(QBT);
 		await modal.getByLabel('Username').fill('admin');
 		await modal.getByLabel('Password').fill('password');
 		await modal.getByRole('button', { name: 'Connect' }).click();
@@ -53,11 +51,11 @@ test.describe('Settings modal', () => {
 		const stored = await page.evaluate(() => ({
 			serverUrl: localStorage.getItem('qbt_serverUrl'),
 			username: localStorage.getItem('qbt_username'),
-			sid: localStorage.getItem('qbt_sid')
+			loggedIn: localStorage.getItem('qbt_loggedIn')
 		}));
 
-		expect(stored.serverUrl).toBe('http://localhost:8080');
+		expect(stored.serverUrl).toBe(QBT);
 		expect(stored.username).toBe('admin');
-		expect(stored.sid).toBe('test-sid-123');
+		expect(stored.loggedIn).toBe('true');
 	});
 });

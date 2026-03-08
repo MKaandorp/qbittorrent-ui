@@ -38,15 +38,15 @@ function createTorrentsStore() {
 	);
 
 	async function fetch(isBackground = false) {
-		const { serverUrl, sid } = settingsStore;
-		if (!serverUrl || !sid) return;
+		const { serverUrl } = settingsStore;
+		if (!serverUrl) return;
 
 		if (!isBackground) loading = true;
 		else refreshing = true;
 		error = null;
 
 		try {
-			const torrents = await getTorrents(serverUrl, sid);
+			const torrents = await getTorrents(serverUrl);
 			list = torrents;
 		} catch (err) {
 			if (err instanceof Error) {

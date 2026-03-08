@@ -50,12 +50,6 @@ export interface Torrent {
 	last_activity: number;
 }
 
-export interface LoginResult {
-	success: boolean;
-	sid?: string;
-	error?: string;
-}
-
 export interface ApiError {
 	status: number;
 	message: string;

@@ -3,16 +3,16 @@ import { browser } from '$app/environment';
 function createSettingsStore() {
 	let serverUrl = $state('');
 	let username = $state('');
-	let sid = $state<string | null>(null);
+	let isLoggedIn = $state(false);
 
 	if (browser) {
 		serverUrl = localStorage.getItem('qbt_serverUrl') ?? '';
 		username = localStorage.getItem('qbt_username') ?? '';
-		sid = localStorage.getItem('qbt_sid') ?? null;
+		isLoggedIn = localStorage.getItem('qbt_loggedIn') === 'true';
 	}
 
 	const isConfigured = $derived(serverUrl.length > 0 && username.length > 0);
-	const isAuthenticated = $derived(isConfigured && sid !== null);
+	const isAuthenticated = $derived(isConfigured && isLoggedIn);
 
 	function setServerUrl(url: string) {
 		serverUrl = url.replace(/\/+$/, '');
@@ -24,24 +24,24 @@ function createSettingsStore() {
 		if (browser) localStorage.setItem('qbt_username', username);
 	}
 
-	function storeSid(newSid: string) {
-		sid = newSid;
-		if (browser) localStorage.setItem('qbt_sid', newSid);
+	function setLoggedIn() {
+		isLoggedIn = true;
+		if (browser) localStorage.setItem('qbt_loggedIn', 'true');
 	}
 
 	function clearSession() {
-		sid = null;
-		if (browser) localStorage.removeItem('qbt_sid');
+		isLoggedIn = false;
+		if (browser) localStorage.removeItem('qbt_loggedIn');
 	}
 
 	function clearAll() {
 		serverUrl = '';
 		username = '';
-		sid = null;
+		isLoggedIn = false;
 		if (browser) {
 			localStorage.removeItem('qbt_serverUrl');
 			localStorage.removeItem('qbt_username');
-			localStorage.removeItem('qbt_sid');
+			localStorage.removeItem('qbt_loggedIn');
 		}
 	}
 
@@ -52,9 +52,6 @@ function createSettingsStore() {
 		get username() {
 			return username;
 		},
-		get sid() {
-			return sid;
-		},
 		get isConfigured() {
 			return isConfigured;
 		},
@@ -63,7 +60,7 @@ function createSettingsStore() {
 		},
 		setServerUrl,
 		setUsername,
-		storeSid,
+		setLoggedIn,
 		clearSession,
 		clearAll
 	};

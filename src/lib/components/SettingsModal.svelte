@@ -42,10 +42,10 @@
 		loading = true;
 		try {
 			const result = await loginRequest(serverUrl.trim(), username.trim(), password);
-			if (result.success && result.sid) {
+			if (result.success) {
 				settingsStore.setServerUrl(serverUrl.trim());
 				settingsStore.setUsername(username.trim());
-				settingsStore.storeSid(result.sid);
+				settingsStore.setLoggedIn();
 				open = false;
 				ondismiss?.();
 			} else {

@@ -1,22 +1,13 @@
 import { test, expect } from '@playwright/test';
 
-async function setStoredAuth(
-	page: import('@playwright/test').Page,
-	opts: { serverUrl?: string; username?: string; sid?: string } = {}
-) {
-	await page.goto('/');
-	await page.evaluate(
-		({ serverUrl, username, sid }) => {
-			if (serverUrl) localStorage.setItem('qbt_serverUrl', serverUrl);
-			if (username) localStorage.setItem('qbt_username', username);
-			if (sid) localStorage.setItem('qbt_sid', sid);
-		},
-		{
-			serverUrl: opts.serverUrl ?? 'http://localhost:8080',
-			username: opts.username ?? 'admin',
-			sid: opts.sid ?? 'stored-sid'
-		}
-	);
+const QBT = 'http://localhost:8080';
+
+async function setStoredAuth(page: import('@playwright/test').Page) {
+	await page.evaluate((qbt) => {
+		localStorage.setItem('qbt_serverUrl', qbt);
+		localStorage.setItem('qbt_username', 'admin');
+		localStorage.setItem('qbt_loggedIn', 'true');
+	}, QBT);
 	await page.reload();
 }
 
@@ -27,14 +18,10 @@ test.describe('Authentication', () => {
 	});
 
 	test('successful login hides modal and shows torrent list', async ({ page }) => {
-		await page.route('/api/auth/login', async (route) => {
-			await route.fulfill({
-				status: 200,
-				contentType: 'application/json',
-				body: JSON.stringify({ success: true, sid: 'valid-sid' })
-			});
+		await page.route(`${QBT}/api/v2/auth/login`, async (route) => {
+			await route.fulfill({ status: 200, body: 'Ok.' });
 		});
-		await page.route('/api/torrents', async (route) => {
+		await page.route(`${QBT}/api/v2/torrents/info`, async (route) => {
 			await route.fulfill({
 				status: 200,
 				contentType: 'application/json',
@@ -44,7 +31,7 @@ test.describe('Authentication', () => {
 
 		await page.reload();
 		const modal = page.getByRole('dialog');
-		await modal.getByLabel('Server URL').fill('http://localhost:8080');
+		await modal.getByLabel('Server URL').fill(QBT);
 		await modal.getByLabel('Username').fill('admin');
 		await modal.getByLabel('Password').fill('password');
 		await modal.getByRole('button', { name: 'Connect' }).click();
@@ -54,17 +41,13 @@ test.describe('Authentication', () => {
 	});
 
 	test('failed login shows error message', async ({ page }) => {
-		await page.route('/api/auth/login', async (route) => {
-			await route.fulfill({
-				status: 401,
-				contentType: 'application/json',
-				body: JSON.stringify({ error: 'Invalid username or password' })
-			});
+		await page.route(`${QBT}/api/v2/auth/login`, async (route) => {
+			await route.fulfill({ status: 200, body: 'Fails.' });
 		});
 
 		await page.reload();
 		const modal = page.getByRole('dialog');
-		await modal.getByLabel('Server URL').fill('http://localhost:8080');
+		await modal.getByLabel('Server URL').fill(QBT);
 		await modal.getByLabel('Username').fill('admin');
 		await modal.getByLabel('Password').fill('wrongpassword');
 		await modal.getByRole('button', { name: 'Connect' }).click();
@@ -72,27 +55,23 @@ test.describe('Authentication', () => {
 		await expect(modal.getByText('Invalid username or password')).toBeVisible();
 	});
 
-	test('502 from proxy shows error message', async ({ page }) => {
-		await page.route('/api/auth/login', async (route) => {
-			await route.fulfill({
-				status: 502,
-				contentType: 'application/json',
-				body: JSON.stringify({ error: 'Cannot reach server' })
-			});
+	test('unreachable server shows error message', async ({ page }) => {
+		await page.route(`${QBT}/api/v2/auth/login`, async (route) => {
+			await route.abort('connectionrefused');
 		});
 
 		await page.reload();
 		const modal = page.getByRole('dialog');
-		await modal.getByLabel('Server URL').fill('http://localhost:8080');
+		await modal.getByLabel('Server URL').fill(QBT);
 		await modal.getByLabel('Username').fill('admin');
 		await modal.getByLabel('Password').fill('password');
 		await modal.getByRole('button', { name: 'Connect' }).click();
 
-		await expect(page.getByRole('heading', { name: 'Connect to QBittorrent' })).toBeVisible();
+		await expect(modal.getByText('Cannot reach server')).toBeVisible();
 	});
 
-	test('auto-login from stored SID skips modal', async ({ page }) => {
-		await page.route('/api/torrents', async (route) => {
+	test('auto-login from stored session skips modal', async ({ page }) => {
+		await page.route(`${QBT}/api/v2/torrents/info`, async (route) => {
 			await route.fulfill({
 				status: 200,
 				contentType: 'application/json',
@@ -107,23 +86,18 @@ test.describe('Authentication', () => {
 	});
 
 	test('session expiry re-prompts with modal', async ({ page }) => {
-		// Set auth before route mock so the first fetch returns 200
 		await page.goto('/');
-		await page.evaluate(() => {
-			localStorage.setItem('qbt_serverUrl', 'http://localhost:8080');
+		await page.evaluate((qbt) => {
+			localStorage.setItem('qbt_serverUrl', qbt);
 			localStorage.setItem('qbt_username', 'admin');
-			localStorage.setItem('qbt_sid', 'stored-sid');
-		});
+			localStorage.setItem('qbt_loggedIn', 'true');
+		}, QBT);
 
 		let callCount = 0;
-		await page.route('/api/torrents', async (route) => {
+		await page.route(`${QBT}/api/v2/torrents/info`, async (route) => {
 			callCount++;
 			if (callCount > 1) {
-				await route.fulfill({
-					status: 401,
-					contentType: 'application/json',
-					body: JSON.stringify({ error: 'Unauthorized' })
-				});
+				await route.fulfill({ status: 403, body: 'Forbidden' });
 			} else {
 				await route.fulfill({
 					status: 200,
@@ -136,19 +110,21 @@ test.describe('Authentication', () => {
 		await page.reload();
 		await expect(page.getByPlaceholder('Filter torrents…')).toBeVisible();
 
-		// Wait for polling to trigger 401 and re-show modal
 		await expect(page.getByRole('heading', { name: /Connect|Settings/ })).toBeVisible({
 			timeout: 15000
 		});
 	});
 
 	test('logout clears session and shows modal', async ({ page }) => {
-		await page.route('/api/torrents', async (route) => {
+		await page.route(`${QBT}/api/v2/torrents/info`, async (route) => {
 			await route.fulfill({
 				status: 200,
 				contentType: 'application/json',
 				body: JSON.stringify([])
 			});
+		});
+		await page.route(`${QBT}/api/v2/auth/logout`, async (route) => {
+			await route.fulfill({ status: 200, body: 'Ok.' });
 		});
 
 		await setStoredAuth(page);
@@ -157,7 +133,7 @@ test.describe('Authentication', () => {
 		await page.getByRole('button', { name: 'Logout' }).click();
 
 		await expect(page.getByRole('heading', { name: /Connect|Settings/ })).toBeVisible();
-		const sid = await page.evaluate(() => localStorage.getItem('qbt_sid'));
-		expect(sid).toBeNull();
+		const loggedIn = await page.evaluate(() => localStorage.getItem('qbt_loggedIn'));
+		expect(loggedIn).toBeNull();
 	});
 });

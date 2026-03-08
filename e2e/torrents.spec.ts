@@ -1,6 +1,8 @@
 import { test, expect } from '@playwright/test';
 import type { Torrent } from '../src/lib/types';
 
+const QBT = 'http://localhost:8080';
+
 const FIXTURE_TORRENTS: Torrent[] = [
 	{
 		hash: 'abc123',
@@ -54,12 +56,12 @@ const FIXTURE_TORRENTS: Torrent[] = [
 
 async function setupWithTorrents(page: import('@playwright/test').Page) {
 	await page.goto('/');
-	await page.evaluate(() => {
-		localStorage.setItem('qbt_serverUrl', 'http://localhost:8080');
+	await page.evaluate((qbt) => {
+		localStorage.setItem('qbt_serverUrl', qbt);
 		localStorage.setItem('qbt_username', 'admin');
-		localStorage.setItem('qbt_sid', 'test-sid');
-	});
-	await page.route('/api/torrents', async (route) => {
+		localStorage.setItem('qbt_loggedIn', 'true');
+	}, QBT);
+	await page.route(`${QBT}/api/v2/torrents/info`, async (route) => {
 		await route.fulfill({
 			status: 200,
 			contentType: 'application/json',
@@ -75,7 +77,6 @@ test.describe('Torrent list', () => {
 		await setupWithTorrents(page);
 
 		await expect(page.locator('table')).toBeVisible();
-		// On desktop, table cells should be visible
 		await expect(page.locator('td').filter({ hasText: 'Ubuntu 22.04 LTS' }).first()).toBeVisible();
 		await expect(page.locator('td').filter({ hasText: 'Debian 12 DVD' }).first()).toBeVisible();
 	});
@@ -85,7 +86,6 @@ test.describe('Torrent list', () => {
 		await setupWithTorrents(page);
 
 		await expect(page.locator('table')).not.toBeVisible();
-		// On mobile, card titles should be visible
 		await expect(page.locator('h3').filter({ hasText: 'Ubuntu 22.04 LTS' })).toBeVisible();
 		await expect(page.locator('h3').filter({ hasText: 'Debian 12 DVD' })).toBeVisible();
 	});
@@ -94,13 +94,9 @@ test.describe('Torrent list', () => {
 		await page.setViewportSize({ width: 1280, height: 800 });
 		await setupWithTorrents(page);
 
-		// Check size formatting
 		await expect(page.getByText('1.0 GB').first()).toBeVisible();
-		// Check seeding badge
 		await expect(page.getByText('Seeding').first()).toBeVisible();
-		// Check downloading badge
 		await expect(page.getByText('Downloading').first()).toBeVisible();
-		// Check ETA unknown shows --
 		await expect(page.getByText('--').first()).toBeVisible();
 	});
 
@@ -118,17 +114,14 @@ test.describe('Torrent list', () => {
 		await page.setViewportSize({ width: 1280, height: 800 });
 		await setupWithTorrents(page);
 
-		// Default sort is name ascending: Debian < Ubuntu, so Debian is first
 		const rows = page.locator('tbody tr');
 		const firstDefault = await rows.first().textContent();
 		expect(firstDefault).toContain('Debian');
 
-		// Click Name header once: toggles to descending, Ubuntu first
 		await page.getByRole('button', { name: 'Name' }).click();
 		const firstDesc = await rows.first().textContent();
 		expect(firstDesc).toContain('Ubuntu');
 
-		// Click again: back to ascending, Debian first
 		await page.getByRole('button', { name: 'Name' }).click();
 		const firstAsc = await rows.first().textContent();
 		expect(firstAsc).toContain('Debian');
@@ -136,37 +129,27 @@ test.describe('Torrent list', () => {
 
 	test('polling updates torrent list', async ({ page }) => {
 		await page.setViewportSize({ width: 1280, height: 800 });
-
 		await page.goto('/');
-		await page.evaluate(() => {
-			localStorage.setItem('qbt_serverUrl', 'http://localhost:8080');
+		await page.evaluate((qbt) => {
+			localStorage.setItem('qbt_serverUrl', qbt);
 			localStorage.setItem('qbt_username', 'admin');
-			localStorage.setItem('qbt_sid', 'test-sid');
-		});
+			localStorage.setItem('qbt_loggedIn', 'true');
+		}, QBT);
 
 		let callCount = 0;
-		await page.route('/api/torrents', async (route) => {
+		await page.route(`${QBT}/api/v2/torrents/info`, async (route) => {
 			callCount++;
-			if (callCount === 1) {
-				await route.fulfill({
-					status: 200,
-					contentType: 'application/json',
-					body: JSON.stringify([FIXTURE_TORRENTS[0]])
-				});
-			} else {
-				await route.fulfill({
-					status: 200,
-					contentType: 'application/json',
-					body: JSON.stringify(FIXTURE_TORRENTS)
-				});
-			}
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify(callCount === 1 ? [FIXTURE_TORRENTS[0]] : FIXTURE_TORRENTS)
+			});
 		});
 
 		await page.reload();
 		await expect(page.locator('td').filter({ hasText: 'Ubuntu 22.04 LTS' }).first()).toBeVisible();
 		await expect(page.locator('td').filter({ hasText: 'Debian 12 DVD' }).first()).not.toBeVisible();
 
-		// Wait for polling to add the second torrent (5s interval)
 		await expect(page.locator('td').filter({ hasText: 'Debian 12 DVD' }).first()).toBeVisible({
 			timeout: 10000
 		});
