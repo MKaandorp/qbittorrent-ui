@@ -1,6 +1,7 @@
 import type { Torrent } from '$lib/types';
 import { getTorrents } from '$lib/api/client';
 import { settingsStore } from './settings.svelte';
+import { browser } from '$app/environment';
 
 type SortKey = keyof Pick<
 	Torrent,
@@ -13,8 +14,10 @@ function createTorrentsStore() {
 	let refreshing = $state(false);
 	let error = $state<string | null>(null);
 	let filterText = $state('');
-	let sortKey = $state<SortKey>('name');
-	let sortAsc = $state(true);
+	let sortKey = $state<SortKey>(
+		(browser && (localStorage.getItem('qbt_sortKey') as SortKey)) || 'name'
+	);
+	let sortAsc = $state(browser ? localStorage.getItem('qbt_sortAsc') !== 'false' : true);
 	let pollInterval: ReturnType<typeof setInterval> | null = null;
 	let onUnauthorized: (() => void) | null = null;
 
@@ -88,6 +91,10 @@ function createTorrentsStore() {
 		} else {
 			sortKey = key;
 			sortAsc = true;
+		}
+		if (browser) {
+			localStorage.setItem('qbt_sortKey', sortKey);
+			localStorage.setItem('qbt_sortAsc', String(sortAsc));
 		}
 	}
 
